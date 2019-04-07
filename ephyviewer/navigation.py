@@ -97,7 +97,7 @@ class NavigationToolBar(QT.QWidget) :
             play_pause_shortcut.setKey(' ')
             play_pause_shortcut.activated.connect(self.on_play_pause_shortcut)
         
-        self.steps = ['60s','10s', '1s', '100ms', '50ms', '5ms' ]
+        self.steps = ['60s','10s', '1s', '100ms', '50ms', '5ms', '1ms', '200us' ]
         
         if show_step:
             but = QT.QPushButton('<')
@@ -127,6 +127,13 @@ class NavigationToolBar(QT.QWidget) :
             prev_step_shortcut.activated.connect(self.prev_step)
             next_step_shortcut.activated.connect(self.next_step)
 
+            # add PageUp and PageDown shortcuts for changing step size
+            increase_step_shortcut = QT.QShortcut(self)
+            decrease_step_shortcut = QT.QShortcut(self)
+            increase_step_shortcut.setKey('Shift+Right')
+            decrease_step_shortcut.setKey('Shift+Left')
+            increase_step_shortcut.activated.connect(self.increase_step)
+            decrease_step_shortcut.activated.connect(self.decrease_step)
         
 
         
@@ -212,6 +219,8 @@ class NavigationToolBar(QT.QWidget) :
 
         if text.endswith('ms'):
             self.step_size = float(text[:-2])*1e-3
+        elif text.endswith('us'):
+            self.step_size = float(text[:-2])*1e-6
         else:
             self.step_size = float(text[:-1])
         #~ print('self.step_size', self.step_size)
@@ -223,6 +232,14 @@ class NavigationToolBar(QT.QWidget) :
     def next_step(self):
         t = self.t +  self.step_size
         self.seek(t)
+    
+    def increase_step(self):
+        new_index = max(self.combo_step.currentIndex()-1, 0)
+        self.combo_step.setCurrentIndex(new_index)
+    
+    def decrease_step(self):
+        new_index = min(self.combo_step.currentIndex()+1, self.combo_step.count()-1)
+        self.combo_step.setCurrentIndex(new_index)
     
     def on_scroll_time_changed(self, pos):
         t = pos/1000.*(self.t_stop - self.t_start)+self.t_start
